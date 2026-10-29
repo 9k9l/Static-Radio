@@ -16,11 +16,11 @@ val localProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.staticradio.app"
+    namespace = "eg.radio"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.staticradio.app"
+        applicationId = "eg.radio"
         minSdk = 26
         targetSdk = 34
         versionCode = 6
@@ -114,5 +114,4 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.osmdroid)
 }

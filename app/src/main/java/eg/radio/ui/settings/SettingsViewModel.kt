@@ -1,0 +1,172 @@
+package eg.radio.ui.settings
+
+import android.content.ContentResolver
+import android.content.Context
+import android.net.Uri
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import eg.radio.data.backup.BackupManager
+import eg.radio.data.backup.MixBackupManager
+import eg.radio.data.local.MixDao
+import eg.radio.data.local.StationDao
+import eg.radio.data.local.TagEntity
+import eg.radio.data.local.TagType
+import eg.radio.data.settings.AccentColor
+import eg.radio.data.settings.ImageShape
+import eg.radio.data.settings.SettingsRepository
+import eg.radio.data.settings.ThemeMode
+import eg.radio.playback.PlaybackRepository
+import eg.radio.playback.RadioController
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+class SettingsViewModel(
+    private val settingsRepository: SettingsRepository,
+    private val stationDao: StationDao,
+    private val mixDao: MixDao,
+    private val radioController: RadioController,
+    private val playbackRepository: PlaybackRepository
+) : ViewModel() {
+
+    private val backupManager = BackupManager(stationDao)
+    private val mixBackupManager = MixBackupManager(mixDao)
+
+    val sleepTimerEndAtMillis: StateFlow<Long?> = playbackRepository.sleepTimerEndAtMillis
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val themeMode: StateFlow<ThemeMode> = settingsRepository.themeMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeMode.SYSTEM)
+    val accentColor: StateFlow<AccentColor> = settingsRepository.accentColor
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentColor.REBAR)
+    val imageShape: StateFlow<ImageShape> = settingsRepository.imageShape
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ImageShape.SQUARE)
+    val normalizeVolume: StateFlow<Boolean> = settingsRepository.normalizeVolume
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val showBackgroundGrid: StateFlow<Boolean> = settingsRepository.showBackgroundGrid
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val gridSpacingDp: StateFlow<Float> = settingsRepository.gridSpacingDp
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), eg.radio.data.settings.DEFAULT_GRID_SPACING_DP)
+    val gridLineWidthDp: StateFlow<Float> = settingsRepository.gridLineWidthDp
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), eg.radio.data.settings.DEFAULT_GRID_LINE_WIDTH_DP)
+    val gridOpacity: StateFlow<Float> = settingsRepository.gridOpacity
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), eg.radio.data.settings.DEFAULT_GRID_OPACITY)
+    val bufferSeconds: StateFlow<Int> = settingsRepository.bufferSeconds
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), eg.radio.data.settings.DEFAULT_BUFFER_SECONDS)
+    val castEnabled: StateFlow<Boolean> = settingsRepository.castEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val recordingMaxMinutes: StateFlow<Int> = settingsRepository.recordingMaxMinutes
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val recordingStopOnStationChange: StateFlow<Boolean> = settingsRepository.recordingStopOnStationChange
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val recordingSubfolder: StateFlow<Boolean> = settingsRepository.recordingSubfolder
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    fun setRecordingMaxMinutes(v: Int) = viewModelScope.launch { settingsRepository.setRecordingMaxMinutes(v) }
+    fun setRecordingStopOnStationChange(v: Boolean) = viewModelScope.launch { settingsRepository.setRecordingStopOnStationChange(v) }
+    fun setRecordingSubfolder(v: Boolean) = viewModelScope.launch { settingsRepository.setRecordingSubfolder(v) }
+
+    val genreVocabulary: StateFlow<List<TagEntity>> = stationDao.observeTagsByType(TagType.GENRE)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _newTagName = MutableStateFlow("")
+    val newTagName: StateFlow<String> = _newTagName
+
+    private val _importExportMessage = MutableStateFlow<String?>(null)
+    val importExportMessage: StateFlow<String?> = _importExportMessage
+
+    fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { settingsRepository.setThemeMode(mode) }
+    fun setAccentColor(color: AccentColor) = viewModelScope.launch { settingsRepository.setAccentColor(color) }
+    fun setImageShape(shape: ImageShape) = viewModelScope.launch { settingsRepository.setImageShape(shape) }
+    fun setNormalizeVolume(enabled: Boolean) = viewModelScope.launch { settingsRepository.setNormalizeVolume(enabled) }
+    fun setShowBackgroundGrid(enabled: Boolean) = viewModelScope.launch { settingsRepository.setShowBackgroundGrid(enabled) }
+    fun setGridSpacingDp(value: Float) = viewModelScope.launch { settingsRepository.setGridSpacingDp(value) }
+    fun setGridLineWidthDp(value: Float) = viewModelScope.launch { settingsRepository.setGridLineWidthDp(value) }
+    fun setGridOpacity(value: Float) = viewModelScope.launch { settingsRepository.setGridOpacity(value) }
+    fun resetGridDefaults() = viewModelScope.launch { settingsRepository.resetGridDefaults() }
+    fun setBufferSeconds(value: Int) = viewModelScope.launch { settingsRepository.setBufferSeconds(value) }
+    fun setCastEnabled(enabled: Boolean) = viewModelScope.launch { settingsRepository.setCastEnabled(enabled) }
+
+    fun setNewTagName(value: String) { _newTagName.value = value }
+
+    fun addGenreTag() {
+        val name = _newTagName.value.trim()
+        if (name.isEmpty()) return
+        viewModelScope.launch {
+            stationDao.insertTag(TagEntity(name = name, type = TagType.GENRE))
+            _newTagName.value = ""
+        }
+    }
+
+    fun deleteGenreTag(tag: TagEntity) {
+        viewModelScope.launch {
+            stationDao.clearCrossRefsForTag(tag.id)
+            stationDao.deleteTag(tag.id)
+        }
+    }
+
+    fun export(contentResolver: ContentResolver, uri: Uri) {
+        viewModelScope.launch {
+            _importExportMessage.value = try {
+                backupManager.export(contentResolver, uri)
+                "تم التصدير بنجاح"
+            } catch (e: Exception) {
+                "فشل التصدير"
+            }
+        }
+    }
+
+    fun import(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            _importExportMessage.value = try {
+                val count = backupManager.import(context, uri)
+                "تم استيراد $count محطة"
+            } catch (e: Exception) {
+                "فشل الاستيراد — تأكد أن الملف نسخة احتياطية zip من Transistor أو راديو EG"
+            }
+        }
+    }
+
+    fun exportMixes(contentResolver: ContentResolver, uri: Uri) {
+        viewModelScope.launch {
+            _importExportMessage.value = try {
+                mixBackupManager.export(contentResolver, uri)
+                "تم تصدير الميكسات بنجاح"
+            } catch (e: Exception) {
+                "فشل تصدير الميكسات"
+            }
+        }
+    }
+
+    fun importMixes(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            _importExportMessage.value = try {
+                val count = mixBackupManager.import(context, uri)
+                "تم استيراد $count ميكس"
+            } catch (e: Exception) {
+                "فشل استيراد الميكسات — تأكد أن الملف نسخة احتياطية zip لميكسات راديو EG"
+            }
+        }
+    }
+
+    fun clearMessage() { _importExportMessage.value = null }
+
+    fun startSleepTimer(durationMillis: Long) = radioController.startSleepTimer(durationMillis)
+
+    fun cancelSleepTimer() = radioController.cancelSleepTimer()
+
+    class Factory(
+        private val settingsRepository: SettingsRepository,
+        private val stationDao: StationDao,
+        private val mixDao: MixDao,
+        private val radioController: RadioController,
+        private val playbackRepository: PlaybackRepository
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            SettingsViewModel(settingsRepository, stationDao, mixDao, radioController, playbackRepository) as T
+    }
+}
