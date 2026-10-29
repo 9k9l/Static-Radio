@@ -1,6 +1,9 @@
 package com.staticradio.app.playback
 
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -29,6 +32,33 @@ class PlaybackRepository {
 
     private val _sleepTimerEndAtMillis = MutableStateFlow<Long?>(null)
     val sleepTimerEndAtMillis: StateFlow<Long?> = _sleepTimerEndAtMillis.asStateFlow()
+
+    private val _isRecording = MutableStateFlow(false)
+    val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
+
+    private val _recordingSeconds = MutableStateFlow(0L)
+    val recordingSeconds: StateFlow<Long> = _recordingSeconds.asStateFlow()
+
+    private val _recordingBytes = MutableStateFlow(0L)
+    val recordingBytes: StateFlow<Long> = _recordingBytes.asStateFlow()
+
+    // One-shot user-facing messages about recording (saved / failed).
+    private val _recordingMessages = MutableSharedFlow<String>(extraBufferCapacity = 8)
+    val recordingMessages: SharedFlow<String> = _recordingMessages.asSharedFlow()
+
+    fun updateRecordingState(recording: Boolean) {
+        _isRecording.value = recording
+        if (!recording) { _recordingSeconds.value = 0; _recordingBytes.value = 0 }
+    }
+
+    fun updateRecordingProgress(seconds: Long, bytes: Long) {
+        _recordingSeconds.value = seconds
+        _recordingBytes.value = bytes
+    }
+
+    fun emitRecordingMessage(message: String) {
+        _recordingMessages.tryEmit(message)
+    }
 
     fun updateCurrentStation(stationId: String?) {
         _currentStationId.value = stationId

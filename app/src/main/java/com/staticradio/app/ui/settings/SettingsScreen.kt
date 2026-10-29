@@ -1,7 +1,5 @@
 package com.staticradio.app.ui.settings
 
-import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -72,7 +70,6 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 private const val MAX_SLEEP_TIMER_MINUTES = 24 * 60
-private const val KOFI_URL = "https://ko-fi.com/W4T623HDPA"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,6 +103,9 @@ fun SettingsScreen(
     val gridOpacity by viewModel.gridOpacity.collectAsState()
     val bufferSeconds by viewModel.bufferSeconds.collectAsState()
     val castEnabled by viewModel.castEnabled.collectAsState()
+    val recMaxMinutes by viewModel.recordingMaxMinutes.collectAsState()
+    val recStopOnChange by viewModel.recordingStopOnStationChange.collectAsState()
+    val recSubfolder by viewModel.recordingSubfolder.collectAsState()
     val moodVocabulary by stationDao.observeTagsByType(com.staticradio.app.data.local.TagType.MOOD).collectAsState(initial = emptyList())
     val styleVocabulary by stationDao.observeTagsByType(com.staticradio.app.data.local.TagType.STYLE).collectAsState(initial = emptyList())
 
@@ -136,10 +136,10 @@ fun SettingsScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text("الإعدادات") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -163,33 +163,33 @@ fun SettingsScreen(
             ) {
                 Text(message.orEmpty(), style = MaterialTheme.typography.bodyMedium)
                 IconButton(onClick = viewModel::clearMessage) {
-                    Icon(Icons.Filled.Close, contentDescription = "Dismiss")
+                    Icon(Icons.Filled.Close, contentDescription = "إغلاق")
                 }
             }
         }
 
         // ---- Appearance ----
-        SettingsCategory(title = "Appearance") {
+        SettingsCategory(title = "المظهر") {
             // Switch enforces a 48dp minimum touch target by default, which pads
             // it well beyond its visual size and was the real source of the extra
             // gap between these two adjacent rows — suppressed just here.
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement provides false
             ) {
-                SettingsRow(label = "Dark mode") {
+                SettingsRow(label = "الوضع الداكن") {
                     Switch(
                         checked = themeMode == ThemeMode.DARK,
                         onCheckedChange = { viewModel.setThemeMode(if (it) ThemeMode.DARK else ThemeMode.LIGHT) }
                     )
                 }
-                SettingsRow(label = "Follow system") {
+                SettingsRow(label = "اتباع النظام") {
                     Switch(
                         checked = themeMode == ThemeMode.SYSTEM,
                         onCheckedChange = { if (it) viewModel.setThemeMode(ThemeMode.SYSTEM) }
                     )
                 }
             }
-            SettingsRow(label = "Accent") {
+            SettingsRow(label = "لون التمييز") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     AccentColor.entries.forEach { accent ->
                         ColorSwatch(
@@ -200,10 +200,10 @@ fun SettingsScreen(
                     }
                 }
             }
-            SettingsRow(label = "Station artwork shape") {
+            SettingsRow(label = "شكل صورة المحطة") {
                 ImageShapeDropdown(selected = imageShape, onSelect = viewModel::setImageShape)
             }
-            SettingsRow(label = "Show background grid") {
+            SettingsRow(label = "إظهار شبكة الخلفية") {
                 Switch(
                     checked = showBackgroundGrid,
                     onCheckedChange = viewModel::setShowBackgroundGrid
@@ -211,9 +211,9 @@ fun SettingsScreen(
             }
             if (showBackgroundGrid) {
                 var gridControlsExpanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-                SettingsRow(label = "Adjust grid") {
+                SettingsRow(label = "ضبط الشبكة") {
                     OutlinedButton(onClick = { gridControlsExpanded = !gridControlsExpanded }) {
-                        Text(if (gridControlsExpanded) "Hide" else "Show")
+                        Text(if (gridControlsExpanded) "إخفاء" else "إظهار")
                     }
                 }
                 if (gridControlsExpanded) {
@@ -231,34 +231,34 @@ fun SettingsScreen(
         }
 
         // ---- Playback ----
-        SettingsCategory(title = "Playback") {
-            SettingsRow(label = "Normalize volume") {
+        SettingsCategory(title = "التشغيل") {
+            SettingsRow(label = "توحيد مستوى الصوت") {
                 Switch(
                     checked = normalizeVolume,
                     onCheckedChange = viewModel::setNormalizeVolume
                 )
             }
             Text(
-                "Smooths out loud/quiet stations in real time by measuring the signal and slowly adjusting gain toward a consistent level — there's no loudness data in internet radio streams to read, so this listens and adapts instead.",
+                "يوازن بين المحطات العالية والهادئة فورياً عبر قياس الإشارة وتعديل مستوى التضخيم تدريجياً نحو مستوى ثابت — لا توجد بيانات عن شدة الصوت في بث الراديو عبر الإنترنت، لذلك يستمع التطبيق ويتكيف بدلاً من ذلك.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            SettingsRow(label = "Stream buffer: ${bufferSeconds}s") {
+            SettingsRow(label = "ذاكرة البث المؤقتة: ${bufferSeconds} ث") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OptionButton(label = "-", active = false, onClick = { viewModel.setBufferSeconds((bufferSeconds - 5).coerceAtLeast(5)) })
                     OptionButton(label = "+", active = false, onClick = { viewModel.setBufferSeconds((bufferSeconds + 5).coerceAtMost(120)) })
                 }
             }
             Text(
-                "A bigger buffer holds more audio ahead of playback, trading a slightly slower start for better resilience against network drops — same idea as Transistor's buffer setting. Takes effect next time a station starts playing.",
+                "الذاكرة المؤقتة الأكبر تحتفظ بمزيد من الصوت قبل تشغيله، مقابل بدء أبطأ قليلاً وثبات أفضل عند انقطاع الشبكة — نفس فكرة إعداد الذاكرة المؤقتة في Transistor. يسري التغيير عند تشغيل المحطة في المرة القادمة.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         // ---- Cast ----
-        SettingsCategory(title = "Cast") {
+        SettingsCategory(title = "الإرسال") {
             SettingsRow(label = "Chromecast") {
                 Switch(
                     checked = castEnabled,
@@ -266,14 +266,51 @@ fun SettingsScreen(
                 )
             }
             Text(
-                "Adds a cast button to the player bar for streaming to a Chromecast device on your network. Off by default — enabling this is the only thing in the app that touches Google Play Services.",
+                "يضيف زر إرسال في شريط المشغّل للبث إلى جهاز Chromecast على شبكتك. معطّل افتراضياً — تفعيله هو الشيء الوحيد في التطبيق الذي يستخدم خدمات Google Play.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // ---- Recording ----
+        SettingsCategory(title = "التسجيل") {
+            Text(
+                "زر التسجيل في شريط المشغّل يحفظ البث الحالي كما هو (بدون إعادة ترميز) في مجلد Download على الجهاز.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            SettingsRow(
+                label = if (recMaxMinutes == 0) "أقصى مدة: بدون حد" else "أقصى مدة: $recMaxMinutes دقيقة"
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OptionButton(label = "-", active = false, onClick = {
+                        viewModel.setRecordingMaxMinutes((recMaxMinutes - 15).coerceAtLeast(0))
+                    })
+                    OptionButton(label = "+", active = false, onClick = {
+                        viewModel.setRecordingMaxMinutes((recMaxMinutes + 15).coerceAtMost(600))
+                    })
+                }
+            }
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement provides false
+            ) {
+                SettingsRow(label = "إيقاف التسجيل عند تغيير المحطة") {
+                    Switch(checked = recStopOnChange, onCheckedChange = viewModel::setRecordingStopOnStationChange)
+                }
+                SettingsRow(label = "الحفظ في مجلد فرعي StaticRadio") {
+                    Switch(checked = recSubfolder, onCheckedChange = viewModel::setRecordingSubfolder)
+                }
+            }
+            Text(
+                "المدة صفر تعني تسجيلاً مفتوحاً حتى تضغط إيقاف. بث HLS وقوائم التشغيل غير مدعومة للتسجيل.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         // ---- Sleep timer ----
-        SettingsCategory(title = "Sleep timer") {
+        SettingsCategory(title = "مؤقت النوم") {
             SleepTimerControls(
                 endAtMillis = sleepTimerEndAtMillis,
                 onStart = viewModel::startSleepTimer,
@@ -282,27 +319,27 @@ fun SettingsScreen(
         }
 
         // ---- Vocabularies ----
-        SettingsCategory(title = "Vocabularies") {
-            SettingsRow(label = "${genreVocabulary.size} genre(s) defined") {
-                OutlinedButton(onClick = onManageGenres) { Text("Manage") }
+        SettingsCategory(title = "القوائم") {
+            SettingsRow(label = "${genreVocabulary.size} نوع (أنواع) معرّف") {
+                OutlinedButton(onClick = onManageGenres) { Text("إدارة") }
             }
-            SettingsRow(label = "${moodVocabulary.size} mood(s) defined") {
-                OutlinedButton(onClick = onManageMoods) { Text("Manage") }
+            SettingsRow(label = "${moodVocabulary.size} مزاج (أمزجة) معرّف") {
+                OutlinedButton(onClick = onManageMoods) { Text("إدارة") }
             }
-            SettingsRow(label = "${styleVocabulary.size} style(s) defined") {
-                OutlinedButton(onClick = onManageStyles) { Text("Manage") }
+            SettingsRow(label = "${styleVocabulary.size} نمط (أنماط) معرّف") {
+                OutlinedButton(onClick = onManageStyles) { Text("إدارة") }
             }
         }
 
         // ---- Backup ----
-        SettingsCategory(title = "Backup") {
+        SettingsCategory(title = "النسخ الاحتياطي") {
             Text(
-                "Radio stations",
+                "محطات الراديو",
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                "Backs up every station field — genre/mood/style, coordinates, description, language, popularity — plus your full Genre/Mood/Style vocabularies. A Transistor export can still be imported directly, but Transistor's format doesn't carry those extra fields.",
+                "ينسخ احتياطياً كل بيانات المحطة — النوع/المزاج/النمط، الإحداثيات، الوصف، اللغة، الشعبية — بالإضافة إلى قوائم الأنواع والأمزجة والأنماط كاملة. يمكن استيراد ملف تصدير Transistor مباشرة، لكن صيغته لا تحمل هذه الحقول الإضافية.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -311,18 +348,18 @@ fun SettingsScreen(
                 OutlinedButton(onClick = {
                     val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
                     exportLauncher.launch("static-backup_$timestamp.zip")
-                }) { Text("Export") }
+                }) { Text("تصدير") }
                 OutlinedButton(onClick = { importLauncher.launch(arrayOf("*/*")) }) {
-                    Text("Import")
+                    Text("استيراد")
                 }
             }
             Text(
-                "Saved mixes",
+                "الميكسات المحفوظة",
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
             )
             Text(
-                "STATIC's own zip format — export bundles the tracklist and any locally-uploaded images.",
+                "صيغة zip الخاصة بتطبيق STATIC — يضم التصدير قائمة المقاطع وأي صور تم رفعها محلياً.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -331,22 +368,18 @@ fun SettingsScreen(
                 OutlinedButton(onClick = {
                     val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
                     exportMixesLauncher.launch("static-mixes_$timestamp.zip")
-                }) { Text("Export") }
+                }) { Text("تصدير") }
                 OutlinedButton(onClick = { importMixesLauncher.launch(arrayOf("*/*")) }) {
-                    Text("Import")
+                    Text("استيراد")
                 }
             }
         }
 
-        KofiButton(onClick = {
-            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL))) }
-        })
-
         Text(
-            text = "Build ${BuildConfig.VERSION_NAME}",
+            text = "الإصدار ${BuildConfig.VERSION_NAME}",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
@@ -386,32 +419,16 @@ private fun GridCustomizationControls(
     onReset: () -> Unit
 ) {
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
-        Text("Grid spacing: ${spacing.toInt()}dp", style = MaterialTheme.typography.labelMedium)
+        Text("تباعد الشبكة: ${spacing.toInt()}dp", style = MaterialTheme.typography.labelMedium)
         Slider(value = spacing, onValueChange = onSpacingChange, valueRange = 12f..64f)
 
-        Text("Grid line width: ${"%.1f".format(lineWidth)}dp", style = MaterialTheme.typography.labelMedium)
+        Text("سمك خط الشبكة: ${"%.1f".format(lineWidth)}dp", style = MaterialTheme.typography.labelMedium)
         Slider(value = lineWidth, onValueChange = onLineWidthChange, valueRange = 0.5f..4f)
 
-        Text("Grid opacity: ${(opacity * 100).toInt()}%", style = MaterialTheme.typography.labelMedium)
+        Text("شفافية الشبكة: ${(opacity * 100).toInt()}%", style = MaterialTheme.typography.labelMedium)
         Slider(value = opacity, onValueChange = onOpacityChange, valueRange = 0f..1f)
 
-        OutlinedButton(onClick = onReset, modifier = Modifier.padding(top = 4.dp)) { Text("Reset to default") }
-    }
-}
-
-@Composable
-private fun KofiButton(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF525252))
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Support me on Ko-fi", color = Color.White, style = MaterialTheme.typography.labelLarge)
+        OutlinedButton(onClick = onReset, modifier = Modifier.padding(top = 4.dp)) { Text("إعادة للافتراضي") }
     }
 }
 
@@ -461,14 +478,14 @@ private fun SleepTimerControls(
         val clamped = remainingMillis.coerceAtLeast(0)
         val minutes = TimeUnit.MILLISECONDS.toMinutes(clamped)
         val seconds = TimeUnit.MILLISECONDS.toSeconds(clamped) % 60
-        SettingsRow(label = "Stops in %02d:%02d".format(minutes, seconds)) {
-            OutlinedButton(onClick = onCancel) { Text("Cancel") }
+        SettingsRow(label = "يتوقف بعد %02d:%02d".format(minutes, seconds)) {
+            OutlinedButton(onClick = onCancel) { Text("إلغاء") }
         }
     } else {
         var hours by remember { mutableIntStateOf(0) }
         var minutes by remember { mutableIntStateOf(30) }
 
-        SettingsRow(label = "Hours") {
+        SettingsRow(label = "الساعات") {
             Stepper(
                 value = hours,
                 onDecrement = { hours = (hours - 1).coerceAtLeast(0) },
@@ -478,7 +495,7 @@ private fun SleepTimerControls(
                 }
             )
         }
-        SettingsRow(label = "Minutes") {
+        SettingsRow(label = "الدقائق") {
             Stepper(
                 value = minutes,
                 onDecrement = { minutes = (minutes - 15).coerceAtLeast(0) },
@@ -488,12 +505,12 @@ private fun SleepTimerControls(
                 }
             )
         }
-        SettingsRow(label = "Playback stops automatically") {
+        SettingsRow(label = "يتوقف التشغيل تلقائياً") {
             val totalMinutes = hours * 60 + minutes
             OutlinedButton(
                 enabled = totalMinutes > 0,
                 onClick = { onStart(TimeUnit.MINUTES.toMillis(totalMinutes.toLong())) }
-            ) { Text("Start") }
+            ) { Text("بدء") }
         }
     }
 }
@@ -525,18 +542,24 @@ private fun ImageShapeDropdown(selected: ImageShape, onSelect: (ImageShape) -> U
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(selected.name.lowercase(), style = MaterialTheme.typography.labelMedium)
+            Text(shapeLabel(selected), style = MaterialTheme.typography.labelMedium)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = null, modifier = Modifier.padding(start = 4.dp))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             ImageShape.entries.forEach { shape ->
                 DropdownMenuItem(
-                    text = { Text(shape.name.lowercase()) },
+                    text = { Text(shapeLabel(shape)) },
                     onClick = { onSelect(shape); expanded = false }
                 )
             }
         }
     }
+}
+
+private fun shapeLabel(shape: ImageShape): String = when (shape) {
+    ImageShape.CIRCLE -> "دائري"
+    ImageShape.SQUARE -> "مربع"
+    ImageShape.ROUNDED -> "حواف مدورة"
 }
 
 @Composable

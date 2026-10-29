@@ -106,7 +106,7 @@ fun TagVocabularyScreen(
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -115,7 +115,7 @@ fun TagVocabularyScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             Text(
-                "Every station's $title is picked from this list — manage the options here.",
+                "يتم اختيار $title لكل محطة من هذه القائمة — أدر الخيارات من هنا.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp)
@@ -128,13 +128,13 @@ fun TagVocabularyScreen(
                 OutlinedTextField(
                     value = newTagName,
                     onValueChange = { newTagName = it },
-                    label = { Text("New $title") },
+                    label = { Text("إضافة $title جديد") },
                     modifier = Modifier.weight(1f)
                 )
                 Button(
                     onClick = { viewModel.addTag(newTagName); newTagName = "" },
                     modifier = Modifier.padding(start = 8.dp)
-                ) { Text("Add") }
+                ) { Text("إضافة") }
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline)
@@ -150,7 +150,7 @@ fun TagVocabularyScreen(
                     ) {
                         Text(tag.name)
                         IconButton(onClick = { viewModel.deleteTag(tag) }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Remove ${tag.name}")
+                            Icon(Icons.Filled.Close, contentDescription = "حذف ${tag.name}")
                         }
                     }
                 }

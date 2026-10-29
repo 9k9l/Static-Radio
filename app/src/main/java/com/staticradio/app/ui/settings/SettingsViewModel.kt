@@ -59,6 +59,16 @@ class SettingsViewModel(
     val castEnabled: StateFlow<Boolean> = settingsRepository.castEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val recordingMaxMinutes: StateFlow<Int> = settingsRepository.recordingMaxMinutes
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val recordingStopOnStationChange: StateFlow<Boolean> = settingsRepository.recordingStopOnStationChange
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val recordingSubfolder: StateFlow<Boolean> = settingsRepository.recordingSubfolder
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    fun setRecordingMaxMinutes(v: Int) = viewModelScope.launch { settingsRepository.setRecordingMaxMinutes(v) }
+    fun setRecordingStopOnStationChange(v: Boolean) = viewModelScope.launch { settingsRepository.setRecordingStopOnStationChange(v) }
+    fun setRecordingSubfolder(v: Boolean) = viewModelScope.launch { settingsRepository.setRecordingSubfolder(v) }
+
     val genreVocabulary: StateFlow<List<TagEntity>> = stationDao.observeTagsByType(TagType.GENRE)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -102,9 +112,9 @@ class SettingsViewModel(
         viewModelScope.launch {
             _importExportMessage.value = try {
                 backupManager.export(contentResolver, uri)
-                "Exported successfully"
+                "تم التصدير بنجاح"
             } catch (e: Exception) {
-                "Export failed"
+                "فشل التصدير"
             }
         }
     }
@@ -113,9 +123,9 @@ class SettingsViewModel(
         viewModelScope.launch {
             _importExportMessage.value = try {
                 val count = backupManager.import(context, uri)
-                "Imported $count station(s)"
+                "تم استيراد $count محطة"
             } catch (e: Exception) {
-                "Import failed — check the file is a Transistor or STATIC backup zip"
+                "فشل الاستيراد — تأكد أن الملف نسخة احتياطية zip من Transistor أو STATIC"
             }
         }
     }
@@ -124,9 +134,9 @@ class SettingsViewModel(
         viewModelScope.launch {
             _importExportMessage.value = try {
                 mixBackupManager.export(contentResolver, uri)
-                "Mixes exported successfully"
+                "تم تصدير الميكسات بنجاح"
             } catch (e: Exception) {
-                "Mix export failed"
+                "فشل تصدير الميكسات"
             }
         }
     }
@@ -135,9 +145,9 @@ class SettingsViewModel(
         viewModelScope.launch {
             _importExportMessage.value = try {
                 val count = mixBackupManager.import(context, uri)
-                "Imported $count mix(es)"
+                "تم استيراد $count ميكس"
             } catch (e: Exception) {
-                "Mix import failed — check the file is a STATIC mixes backup zip"
+                "فشل استيراد الميكسات — تأكد أن الملف نسخة احتياطية zip لميكسات STATIC"
             }
         }
     }

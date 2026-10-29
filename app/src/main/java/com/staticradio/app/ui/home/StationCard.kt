@@ -270,7 +270,7 @@ fun StationListRow(
                 ) {
                     Icon(
                         Icons.Filled.Language,
-                        contentDescription = "Station homepage",
+                        contentDescription = "موقع المحطة",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

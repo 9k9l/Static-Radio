@@ -87,6 +87,9 @@ class RadioPlaybackService : MediaLibraryService() {
     var stationLookup: StationLookup? = null
 
     private var sleepTimerJob: Job? = null
+    private lateinit var recorder: StreamRecorder
+    @Volatile private var recordingStopOnChange = true
+    private var recordingWakeLock: android.os.PowerManager.WakeLock? = null
     private val autoGainProcessor = AutoGainAudioProcessor()
 
     // Initialized in onCreate (needs an attached Context) — also reused to
@@ -233,6 +236,26 @@ class RadioPlaybackService : MediaLibraryService() {
             .build()
             .apply { addListener(playerListener) }
 
+        recorder = StreamRecorder(applicationContext, repository)
+        serviceScope.launch {
+            repository.isRecording.collect { recording ->
+                if (recording) {
+                    if (recordingWakeLock == null) {
+                        val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
+                        recordingWakeLock = pm.newWakeLock(
+                            android.os.PowerManager.PARTIAL_WAKE_LOCK, "StaticRadio:recording"
+                        ).apply { setReferenceCounted(false); acquire() }
+                    }
+                } else {
+                    recordingWakeLock?.let { if (it.isHeld) it.release() }
+                    recordingWakeLock = null
+                    if (::mediaSession.isInitialized) {
+                        onUpdateNotification(mediaSession, mediaSession.player.isPlaying)
+                    }
+                }
+            }
+        }
+
         serviceScope.launch {
             app.settingsRepository.normalizeVolume.collect { enabled ->
                 autoGainProcessor.enabled = enabled
@@ -300,7 +323,40 @@ class RadioPlaybackService : MediaLibraryService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession = mediaSession
 
+    // Keep the service in the foreground while a recording is running, even if
+    // playback itself is paused, so the system doesn't stop the recording.
+    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+        super.onUpdateNotification(session, startInForegroundRequired || recorder.isRecording)
+    }
+
+    fun startRecording() {
+        if (recorder.isRecording) return
+        val item = mediaSession.player.currentMediaItem
+        val url = item?.localConfiguration?.uri?.toString()
+        if (item == null || url == null) {
+            repository.emitRecordingMessage("شغّل محطة أولاً ثم ابدأ التسجيل")
+            return
+        }
+        val name = item.mediaMetadata.station?.toString()
+            ?: item.mediaMetadata.title?.toString()
+            ?: "radio"
+        val app = application as StaticRadioApp
+        serviceScope.launch {
+            val maxMinutes = app.settingsRepository.recordingMaxMinutes.first()
+            val subfolder = app.settingsRepository.recordingSubfolder.first()
+            recordingStopOnChange = app.settingsRepository.recordingStopOnStationChange.first()
+            recorder.start(serviceScope, url, name, maxMinutes, subfolder)
+            onUpdateNotification(mediaSession, true)
+        }
+    }
+
+    fun stopRecording() {
+        recorder.stop()
+    }
+
     override fun onDestroy() {
+        recorder.stop()
+        recordingWakeLock?.let { if (it.isHeld) it.release() }
         (getSystemService(AUDIO_SERVICE) as AudioManager).unregisterAudioDeviceCallback(audioDeviceCallback)
         disableCastSupport()
         mediaSession.run {
@@ -675,6 +731,13 @@ class RadioPlaybackService : MediaLibraryService() {
 
     private val playerListener = object : Player.Listener {
 
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            if (recorder.isRecording && recordingStopOnChange) {
+                val newUrl = mediaItem?.localConfiguration?.uri?.toString()
+                if (newUrl != recorder.recordingUrl) recorder.stop()
+            }
+        }
+
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             repository.updatePlayingState(isPlaying)
         }
@@ -786,7 +849,7 @@ class RadioPlaybackService : MediaLibraryService() {
             // Log the real cause since it's otherwise swallowed by the generic
             // user-facing message below.
             Log.w("RadioPlaybackService", "Playback error for station ${repository.currentStationId.value}", error)
-            repository.updateError("Couldn't play this station. It may be offline.")
+            repository.updateError("تعذّر تشغيل هذه المحطة. قد تكون غير متصلة.")
         }
 
         override fun onMetadata(metadata: Metadata) {
@@ -837,6 +900,8 @@ class RadioPlaybackService : MediaLibraryService() {
                 .add(SessionCommand(CMD_PLAY_RANDOM, Bundle.EMPTY))
                 .add(SessionCommand(CMD_SET_SLEEP_TIMER, Bundle.EMPTY))
                 .add(SessionCommand(CMD_CANCEL_SLEEP_TIMER, Bundle.EMPTY))
+                .add(SessionCommand(CMD_START_RECORDING, Bundle.EMPTY))
+                .add(SessionCommand(CMD_STOP_RECORDING, Bundle.EMPTY))
                 .build()
 
             // Custom layout (shuffle button) is set session-wide in onCreate,
@@ -894,6 +959,8 @@ class RadioPlaybackService : MediaLibraryService() {
                     startSleepTimer(durationMillis)
                 }
                 CMD_CANCEL_SLEEP_TIMER -> cancelSleepTimer()
+                CMD_START_RECORDING -> startRecording()
+                CMD_STOP_RECORDING -> stopRecording()
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
@@ -1046,6 +1113,8 @@ class RadioPlaybackService : MediaLibraryService() {
         const val CMD_PLAY_RANDOM = "com.staticradio.app.PLAY_RANDOM"
         const val CMD_SET_SLEEP_TIMER = "com.staticradio.app.SET_SLEEP_TIMER"
         const val CMD_CANCEL_SLEEP_TIMER = "com.staticradio.app.CANCEL_SLEEP_TIMER"
+        const val CMD_START_RECORDING = "com.staticradio.app.START_RECORDING"
+        const val CMD_STOP_RECORDING = "com.staticradio.app.STOP_RECORDING"
         const val ARG_STATION_ID = "station_id"
         const val ARG_STREAM_URL = "stream_url"
         const val ARG_TITLE = "title"

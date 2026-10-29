@@ -65,10 +65,10 @@ fun AddStationScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Add Station") },
+                title = { Text("إضافة محطة") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -83,12 +83,12 @@ fun AddStationScreen(
                 Tab(
                     selected = mode == AddStationMode.SEARCH,
                     onClick = { viewModel.setMode(AddStationMode.SEARCH) },
-                    text = { Text("Search") }
+                    text = { Text("بحث") }
                 )
                 Tab(
                     selected = mode == AddStationMode.MANUAL,
                     onClick = { viewModel.setMode(AddStationMode.MANUAL) },
-                    text = { Text("Manual URL") }
+                    text = { Text("رابط يدوي") }
                 )
             }
 
@@ -121,7 +121,7 @@ private fun ManualEntryForm(viewModel: AddStationViewModel, stationDao: StationD
         OutlinedTextField(
             value = streamUrl,
             onValueChange = viewModel::setStreamUrl,
-            label = { Text("Stream URL *") },
+            label = { Text("رابط البث *") },
             placeholder = { Text("https://...") },
             isError = error != null,
             supportingText = error?.let { { Text(it) } },
@@ -130,36 +130,36 @@ private fun ManualEntryForm(viewModel: AddStationViewModel, stationDao: StationD
         OutlinedTextField(
             value = name,
             onValueChange = viewModel::setName,
-            label = { Text("Name (optional)") },
+            label = { Text("الاسم (اختياري)") },
             modifier = Modifier.fillMaxWidth()
         )
         GenreVocabularyField(
             stationDao = stationDao,
             value = genre,
             onValueChange = viewModel::setGenre,
-            label = "Genre (optional)"
+            label = "النوع (اختياري)"
         )
         CountryCodeField(
             value = country,
             onValueChange = viewModel::setCountry,
-            label = "Country (optional)"
+            label = "الدولة (اختياري)"
         )
         TagPickerField(
             stationDao = stationDao,
             tagType = TagType.MOOD,
             value = mood,
             onValueChange = viewModel::setMood,
-            label = "Mood (optional)"
+            label = "المزاج (اختياري)"
         )
         TagPickerField(
             stationDao = stationDao,
             tagType = TagType.STYLE,
             value = style,
             onValueChange = viewModel::setStyle,
-            label = "Style (optional)"
+            label = "النمط (اختياري)"
         )
         Button(onClick = viewModel::saveManualStation, modifier = Modifier.fillMaxWidth()) {
-            Text("Add Station")
+            Text("إضافة محطة")
         }
     }
 }
@@ -190,21 +190,21 @@ private fun SearchForm(viewModel: AddStationViewModel) {
             OutlinedTextField(
                 value = query,
                 onValueChange = viewModel::setQuery,
-                label = { Text("Search by name") },
+                label = { Text("بحث بالاسم") },
                 modifier = Modifier.weight(1f)
             )
             androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
-            Button(onClick = viewModel::search) { Text("Search") }
+            Button(onClick = viewModel::search) { Text("بحث") }
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
             OutlinedTextField(
                 value = tagQuery,
                 onValueChange = viewModel::setTagQuery,
-                label = { Text("Search by genre tag") },
+                label = { Text("بحث بوسم النوع") },
                 modifier = Modifier.weight(1f)
             )
             androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
-            Button(onClick = viewModel::searchByTag) { Text("Search") }
+            Button(onClick = viewModel::searchByTag) { Text("بحث") }
         }
 
         if (error != null) {
@@ -221,7 +221,7 @@ private fun SearchForm(viewModel: AddStationViewModel) {
             // blank list), which read as the search being broken.
             Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "No stations found. Try a different name or tag.",
+                    text = "لم يتم العثور على محطات. جرّب اسماً أو وسماً مختلفاً.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -267,6 +267,6 @@ private fun SearchResultRow(result: RadioBrowserStation, onAdd: () -> Unit) {
                 )
             }
         }
-        TextButton(onClick = onAdd) { Text("Add") }
+        TextButton(onClick = onAdd) { Text("إضافة") }
     }
 }

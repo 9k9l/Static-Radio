@@ -39,6 +39,9 @@ class SettingsRepository(private val context: Context) {
         val GRID_OPACITY = floatPreferencesKey("grid_opacity")
         val BUFFER_SECONDS = intPreferencesKey("buffer_seconds")
         val CAST_ENABLED = booleanPreferencesKey("cast_enabled")
+        val REC_MAX_MINUTES = intPreferencesKey("rec_max_minutes")
+        val REC_STOP_ON_CHANGE = booleanPreferencesKey("rec_stop_on_station_change")
+        val REC_SUBFOLDER = booleanPreferencesKey("rec_subfolder")
     }
 
     val themeMode: Flow<ThemeMode> = context.settingsDataStore.data.map { prefs ->
@@ -125,6 +128,25 @@ class SettingsRepository(private val context: Context) {
     // touched unless the user explicitly turns this on (see RadioPlaybackService).
     val castEnabled: Flow<Boolean> = context.settingsDataStore.data.map { prefs ->
         prefs[Keys.CAST_ENABLED] ?: false
+    }
+
+    // ---- Recording ----
+    // 0 = unlimited.
+    val recordingMaxMinutes: Flow<Int> = context.settingsDataStore.data.map { it[Keys.REC_MAX_MINUTES] ?: 0 }
+    suspend fun setRecordingMaxMinutes(value: Int) {
+        context.settingsDataStore.edit { it[Keys.REC_MAX_MINUTES] = value }
+    }
+
+    val recordingStopOnStationChange: Flow<Boolean> =
+        context.settingsDataStore.data.map { it[Keys.REC_STOP_ON_CHANGE] ?: true }
+    suspend fun setRecordingStopOnStationChange(value: Boolean) {
+        context.settingsDataStore.edit { it[Keys.REC_STOP_ON_CHANGE] = value }
+    }
+
+    val recordingSubfolder: Flow<Boolean> =
+        context.settingsDataStore.data.map { it[Keys.REC_SUBFOLDER] ?: false }
+    suspend fun setRecordingSubfolder(value: Boolean) {
+        context.settingsDataStore.edit { it[Keys.REC_SUBFOLDER] = value }
     }
 
     suspend fun setCastEnabled(enabled: Boolean) {

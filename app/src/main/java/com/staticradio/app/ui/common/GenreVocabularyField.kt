@@ -50,7 +50,7 @@ fun GenreVocabularyField(
             readOnly = true,
             label = { Text(label) },
             placeholder = {
-                Text(if (vocabulary.isEmpty()) "No genres defined — add some in Settings → Genre Vocabulary" else "Tap to select")
+                Text(if (vocabulary.isEmpty()) "لا توجد أنواع معرّفة — أضف بعضها من الإعدادات ← قائمة الأنواع" else "اضغط للاختيار")
             },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             supportingText = supportingText?.let { { Text(it) } },

@@ -97,7 +97,7 @@ fun AppTopBar(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (onBackClick != null) {
                         TopBarIconButton(active = false, onClick = onBackClick) { tint ->
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = tint)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع", tint = tint)
                         }
                         Spacer(Modifier.width(8.dp))
                     }
@@ -112,7 +112,7 @@ fun AppTopBar(
                         Spacer(Modifier.width(8.dp))
                     }
                     TopBarIconButton(active = filterActive, onClick = onFilterClick) { tint ->
-                        Icon(Icons.Filled.FilterList, contentDescription = "Filter", tint = tint)
+                        Icon(Icons.Filled.FilterList, contentDescription = "تصفية", tint = tint)
                     }
                     if (mode != TopBarMode.MIXES) {
                         Spacer(Modifier.width(8.dp))
@@ -123,10 +123,10 @@ fun AppTopBar(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TopBarIconButton(active = true, onClick = onAddClick) { tint ->
-                        Icon(Icons.Filled.Add, contentDescription = "Add station", tint = tint)
+                        Icon(Icons.Filled.Add, contentDescription = "إضافة", tint = tint)
                     }
                     TopBarIconButton(active = false, onClick = onSettingsClick) { tint ->
-                        Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = tint)
+                        Icon(Icons.Filled.Settings, contentDescription = "الإعدادات", tint = tint)
                     }
                 }
             }
@@ -153,21 +153,21 @@ private fun ViewModeSegment(
         SegmentHalf(
             active = activeViewMode == StationViewMode.LIST,
             onClick = onListClick
-        ) { tint -> Icon(Icons.Filled.Menu, contentDescription = "List view", tint = tint) }
+        ) { tint -> Icon(Icons.Filled.Menu, contentDescription = "عرض قائمة", tint = tint) }
 
         SegmentDivider(keyline)
 
         SegmentHalf(
             active = activeViewMode == StationViewMode.GRID,
             onClick = onGridClick
-        ) { tint -> Icon(Icons.Filled.GridView, contentDescription = "Grid view", tint = tint) }
+        ) { tint -> Icon(Icons.Filled.GridView, contentDescription = "عرض شبكة", tint = tint) }
 
         SegmentDivider(keyline)
 
         SegmentHalf(
             active = mode == TopBarMode.MAP,
             onClick = onMapClick
-        ) { tint -> Icon(Icons.Filled.Map, contentDescription = "Map", tint = tint) }
+        ) { tint -> Icon(Icons.Filled.Map, contentDescription = "الخريطة", tint = tint) }
     }
 }
 

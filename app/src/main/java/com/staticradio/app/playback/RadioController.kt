@@ -73,6 +73,20 @@ class RadioController(private val context: Context) {
         )
     }
 
+    fun startRecording() {
+        controller?.sendCustomCommand(
+            SessionCommand(RadioPlaybackService.CMD_START_RECORDING, Bundle.EMPTY),
+            Bundle.EMPTY
+        )
+    }
+
+    fun stopRecording() {
+        controller?.sendCustomCommand(
+            SessionCommand(RadioPlaybackService.CMD_STOP_RECORDING, Bundle.EMPTY),
+            Bundle.EMPTY
+        )
+    }
+
     fun startSleepTimer(durationMillis: Long) {
         val args = Bundle().apply {
             putLong(RadioPlaybackService.ARG_DURATION_MILLIS, durationMillis)

@@ -104,7 +104,7 @@ fun MixesScreen(
             filterActive = filterActive,
             onAddClick = onAddMix,
             onSettingsClick = onSettingsClick,
-            subtitle = "// saved mixes",
+            subtitle = "// الميكسات المحفوظة",
             onBackClick = onBack
         )
 
@@ -117,8 +117,8 @@ fun MixesScreen(
 
         if (mixes.isEmpty() && !filterActive) {
             com.staticradio.app.ui.home.EmptyStateMessage(
-                title = "No mixes yet",
-                body = "Tap the + button above to add one — or share a link directly from the SoundCloud or Mixcloud app and STATIC will pre-fill the details for you.",
+                title = "لا توجد ميكسات بعد",
+                body = "اضغط على زر + بالأعلى للإضافة — أو شارك رابطاً مباشرة من تطبيق SoundCloud أو Mixcloud وسيعبّئ STATIC التفاصيل تلقائياً.",
                 modifier = Modifier.fillMaxSize().then(backgroundModifier)
             )
             return@Column
@@ -171,7 +171,7 @@ private fun MixListRow(
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f, fill = true)) {
                     Text(
-                        text = mix.fullTitle ?: "Untitled mix",
+                        text = mix.fullTitle ?: "ميكس بدون عنوان",
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -237,34 +237,34 @@ private fun MixFilterDialog(
         containerColor = MaterialTheme.colorScheme.surface,
         titleContentColor = MaterialTheme.colorScheme.onSurface,
         textContentColor = MaterialTheme.colorScheme.onSurface,
-        title = { Text("Filter") },
+        title = { Text("تصفية") },
         text = {
             Column {
-                MixFilterSection(title = "Favourites") {
-                    MixFilterChip(label = "★ Favourites", active = filter.favoritesOnly, onClick = onFavoritesClick)
+                MixFilterSection(title = "المفضلة") {
+                    MixFilterChip(label = "★ المفضلة", active = filter.favoritesOnly, onClick = onFavoritesClick)
                 }
-                MixFilterSection(title = "Genre") {
+                MixFilterSection(title = "النوع") {
                     if (genres.isEmpty()) {
-                        Text("No genres yet", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("لا توجد أنواع بعد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     genres.forEach { genre -> MixFilterChip(label = genre, active = genre == filter.genre, onClick = { onGenreClick(genre) }) }
                 }
-                MixFilterSection(title = "Mood") {
+                MixFilterSection(title = "المزاج") {
                     if (moods.isEmpty()) {
-                        Text("No moods yet", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("لا توجد أمزجة بعد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     moods.forEach { mood -> MixFilterChip(label = mood, active = mood == filter.mood, onClick = { onMoodClick(mood) }) }
                 }
-                MixFilterSection(title = "Style") {
+                MixFilterSection(title = "النمط") {
                     if (styles.isEmpty()) {
-                        Text("No styles yet", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("لا توجد أنماط بعد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     styles.forEach { style -> MixFilterChip(label = style, active = style == filter.style, onClick = { onStyleClick(style) }) }
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Done") }
+            TextButton(onClick = onDismiss) { Text("تم") }
         }
     )
 }

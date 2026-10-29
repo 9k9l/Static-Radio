@@ -314,7 +314,7 @@ fun MapScreen(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = "رجوع",
                     tint = androidx.compose.ui.graphics.Color(0xFF17171A)
                 )
             }

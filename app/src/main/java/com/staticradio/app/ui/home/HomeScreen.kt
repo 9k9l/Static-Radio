@@ -120,8 +120,8 @@ fun HomeScreen(
 
         if (stations.isEmpty() && !filterActive) {
             EmptyStateMessage(
-                title = "No stations yet",
-                body = "Tap the + button above to add one — paste a stream URL directly, or search Radio Browser for stations to import.",
+                title = "لا توجد محطات بعد",
+                body = "اضغط على زر + بالأعلى للإضافة — الصق رابط بث مباشرة، أو ابحث في Radio Browser عن محطات لاستيرادها.",
                 modifier = Modifier.fillMaxSize().then(gridBackgroundModifier)
             )
             return@Column
@@ -206,39 +206,39 @@ fun StationFilterDialog(
         containerColor = MaterialTheme.colorScheme.surface,
         titleContentColor = MaterialTheme.colorScheme.onSurface,
         textContentColor = MaterialTheme.colorScheme.onSurface,
-        title = { Text("Filter") },
+        title = { Text("تصفية") },
         text = {
             Column {
-                FilterSection(title = "Favourites") {
-                    Chip(label = "★ Favourites", active = filter.favoritesOnly, onClick = onFavoritesClick)
+                FilterSection(title = "المفضلة") {
+                    Chip(label = "★ المفضلة", active = filter.favoritesOnly, onClick = onFavoritesClick)
                 }
-                FilterSection(title = "Genre") {
+                FilterSection(title = "النوع") {
                     if (genres.isEmpty()) {
-                        Text("No genres yet", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("لا توجد أنواع بعد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     genres.forEach { genre ->
                         Chip(label = genre, active = genre == filter.genre, onClick = { onGenreClick(genre) })
                     }
                 }
-                FilterSection(title = "Country") {
+                FilterSection(title = "الدولة") {
                     if (countryCodes.isEmpty()) {
-                        Text("No countries yet", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("لا توجد دول بعد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     countryCodes.forEach { code ->
                         Chip(label = code, active = code == filter.countryCode, onClick = { onCountryClick(code) })
                     }
                 }
-                FilterSection(title = "Mood") {
+                FilterSection(title = "المزاج") {
                     if (moods.isEmpty()) {
-                        Text("No moods yet", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("لا توجد أمزجة بعد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     moods.forEach { mood ->
                         Chip(label = mood, active = mood == filter.mood, onClick = { onMoodClick(mood) })
                     }
                 }
-                FilterSection(title = "Style") {
+                FilterSection(title = "النمط") {
                     if (styles.isEmpty()) {
-                        Text("No styles yet", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("لا توجد أنماط بعد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     styles.forEach { style ->
                         Chip(label = style, active = style == filter.style, onClick = { onStyleClick(style) })
@@ -247,7 +247,7 @@ fun StationFilterDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Done") }
+            TextButton(onClick = onDismiss) { Text("تم") }
         }
     )
 }

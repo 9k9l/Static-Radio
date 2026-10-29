@@ -7,7 +7,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.FiberManualRecord
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,7 +62,16 @@ class PlayerViewModel(
     var barState by mutableStateOf(PlayerBarState())
         private set
 
+    var isRecording by mutableStateOf(false)
+        private set
+    var recordingSeconds by mutableStateOf(0L)
+        private set
+
     init {
+        viewModelScope.launch {
+            combine(repository.isRecording, repository.recordingSeconds) { rec, secs -> rec to secs }
+                .collect { (rec, secs) -> isRecording = rec; recordingSeconds = secs }
+        }
         viewModelScope.launch {
             combine(
                 repository.currentStationId,
@@ -97,6 +107,9 @@ class PlayerViewModel(
 
     fun togglePlayPause() = controller.togglePlayPause()
     fun playRandom() = controller.playRandom()
+    fun toggleRecording() {
+        if (isRecording) controller.stopRecording() else controller.startRecording()
+    }
 
     class Factory(
         private val repository: PlaybackRepository,
@@ -121,7 +134,9 @@ class PlayerViewModel(
 fun PersistentPlayerBar(
     state: PlayerViewModel.PlayerBarState,
     onTogglePlayPause: () -> Unit,
-    onRandom: () -> Unit,
+    isRecording: Boolean = false,
+    recordingSeconds: Long = 0L,
+    onToggleRecording: () -> Unit = {},
     castEnabled: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -186,7 +201,7 @@ fun PersistentPlayerBar(
                         // moment playback starts and this line first appears.
                         Text(
                             text = state.nowPlayingText?.takeIf { it.isNotBlank() }
-                                ?: "No 'Now Playing' data provided",
+                                ?: "لا توجد بيانات عن المقطع الحالي",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.labelMedium,
@@ -221,8 +236,19 @@ fun PersistentPlayerBar(
                     Spacer(modifier = Modifier.width((-6).dp))
                 }
 
-                IconButton(onClick = onRandom, modifier = Modifier.size(44.dp)) {
-                    Icon(Icons.Filled.Shuffle, contentDescription = "Random station", tint = onAccent)
+                if (isRecording) {
+                    Text(
+                        text = "%02d:%02d".format(recordingSeconds / 60, recordingSeconds % 60),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onAccent
+                    )
+                }
+                IconButton(onClick = onToggleRecording, modifier = Modifier.size(44.dp)) {
+                    Icon(
+                        imageVector = if (isRecording) Icons.Filled.Stop else Icons.Filled.FiberManualRecord,
+                        contentDescription = if (isRecording) "إيقاف التسجيل" else "بدء التسجيل",
+                        tint = onAccent
+                    )
                 }
 
                 Spacer(modifier = Modifier.width((-6).dp))
@@ -233,7 +259,7 @@ fun PersistentPlayerBar(
                     } else {
                         Icon(
                             imageVector = if (state.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = if (state.isPlaying) "Pause" else "Play",
+                            contentDescription = if (state.isPlaying) "إيقاف مؤقت" else "تشغيل",
                             tint = onAccent
                         )
                     }

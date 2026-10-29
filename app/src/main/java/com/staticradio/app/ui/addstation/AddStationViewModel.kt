@@ -77,7 +77,7 @@ class AddStationViewModel(
     fun saveManualStation() {
         val url = _streamUrl.value.trim()
         if (url.isEmpty() || !(url.startsWith("http://") || url.startsWith("https://"))) {
-            _manualError.value = "Enter a valid stream URL (must start with http:// or https://)"
+            _manualError.value = "أدخل رابط بث صحيحاً (يجب أن يبدأ بـ http:// أو https://)"
             return
         }
         viewModelScope.launch {
@@ -116,7 +116,7 @@ class AddStationViewModel(
             try {
                 _searchResults.value = radioBrowserApi.searchStations(q)
             } catch (e: Exception) {
-                _searchError.value = "Search failed — check your connection."
+                _searchError.value = "فشل البحث — تحقق من اتصالك بالإنترنت."
                 _searchResults.value = emptyList()
             } finally {
                 _isSearching.value = false
@@ -133,7 +133,7 @@ class AddStationViewModel(
             try {
                 _searchResults.value = radioBrowserApi.searchStationsByTag(tag)
             } catch (e: Exception) {
-                _searchError.value = "Search failed — check your connection."
+                _searchError.value = "فشل البحث — تحقق من اتصالك بالإنترنت."
                 _searchResults.value = emptyList()
             } finally {
                 _isSearching.value = false

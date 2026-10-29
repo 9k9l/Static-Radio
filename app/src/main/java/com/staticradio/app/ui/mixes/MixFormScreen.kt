@@ -73,13 +73,13 @@ fun MixFormScreen(
             containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             textContentColor = MaterialTheme.colorScheme.onSurface,
-            title = { Text("Delete mix?") },
-            text = { Text("This removes it from your saved mixes. This can't be undone.") },
+            title = { Text("حذف الميكس؟") },
+            text = { Text("سيتم حذفه من الميكسات المحفوظة. لا يمكن التراجع عن هذا الإجراء.") },
             confirmButton = {
-                TextButton(onClick = { showDeleteConfirm = false; viewModel.delete() }) { Text("Delete") }
+                TextButton(onClick = { showDeleteConfirm = false; viewModel.delete() }) { Text("حذف") }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("إلغاء") }
             }
         )
     }
@@ -88,16 +88,16 @@ fun MixFormScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(if (viewModel.isEditMode) "Edit Mix" else "Add Mix") },
+                title = { Text(if (viewModel.isEditMode) "تعديل الميكس" else "إضافة ميكس") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع")
                     }
                 },
                 actions = {
                     if (viewModel.isEditMode) {
                         IconButton(onClick = { showDeleteConfirm = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete mix")
+                            Icon(Icons.Filled.Delete, contentDescription = "حذف الميكس")
                         }
                     }
                 },
@@ -139,8 +139,8 @@ fun MixFormScreen(
             OutlinedTextField(
                 value = url,
                 onValueChange = viewModel::setUrl,
-                label = { Text("URL *") },
-                placeholder = { Text("https://soundcloud.com/... or mixcloud.com/...") },
+                label = { Text("الرابط *") },
+                placeholder = { Text("https://soundcloud.com/... أو mixcloud.com/...") },
                 isError = error != null,
                 supportingText = error?.let { { Text(it) } },
                 modifier = Modifier.fillMaxWidth()
@@ -148,61 +148,61 @@ fun MixFormScreen(
             OutlinedTextField(
                 value = fullTitle,
                 onValueChange = viewModel::setFullTitle,
-                label = { Text("Full title") },
+                label = { Text("العنوان الكامل") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = artist,
                 onValueChange = viewModel::setArtist,
-                label = { Text("Artist") },
+                label = { Text("الفنان") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = mixTitle,
                 onValueChange = viewModel::setMixTitle,
-                label = { Text("Mix title") },
+                label = { Text("عنوان الميكس") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = sourceRadio,
                 onValueChange = viewModel::setSourceRadio,
-                label = { Text("Source radio / show") },
+                label = { Text("الراديو / البرنامج المصدر") },
                 modifier = Modifier.fillMaxWidth()
             )
             GenreVocabularyField(
                 stationDao = stationDao,
                 value = genre.orEmpty(),
                 onValueChange = { viewModel.setGenre(it.ifBlank { null }) },
-                label = "Genre",
-                supportingText = "Genres played — multiple allowed"
+                label = "النوع",
+                supportingText = "الأنواع الموسيقية المقدَّمة — يمكن اختيار أكثر من نوع"
             )
             TagPickerField(
                 stationDao = stationDao,
                 tagType = TagType.MOOD,
                 value = mood,
                 onValueChange = viewModel::setMood,
-                label = "Mood",
-                supportingText = "What setting you might want to play this mix in"
+                label = "المزاج",
+                supportingText = "الأجواء التي قد ترغب في تشغيل هذا الميكس فيها"
             )
             TagPickerField(
                 stationDao = stationDao,
                 tagType = TagType.STYLE,
                 value = style,
                 onValueChange = viewModel::setStyle,
-                label = "Style",
-                supportingText = "What type of stream this is, e.g. DJ set, radio show, talk show"
+                label = "النمط",
+                supportingText = "نوع البث، مثل: عرض دي جي، برنامج راديو، برنامج حواري"
             )
             OutlinedTextField(
                 value = image,
                 onValueChange = viewModel::setImage,
-                label = { Text("Image URL") },
+                label = { Text("رابط الصورة") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = releasedDate,
                 onValueChange = viewModel::setReleasedDate,
-                label = { Text("Released date") },
-                placeholder = { Text("DD/MM/YYYY, e.g. 01/01/2020") },
+                label = { Text("تاريخ الإصدار") },
+                placeholder = { Text("يوم/شهر/سنة، مثال: 01/01/2020") },
                 isError = releasedDateError != null,
                 supportingText = releasedDateError?.let { { Text(it) } },
                 modifier = Modifier.fillMaxWidth()
@@ -210,7 +210,7 @@ fun MixFormScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = viewModel::setDescription,
-                label = { Text("Description") },
+                label = { Text("الوصف") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -219,11 +219,11 @@ fun MixFormScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Favourite")
+                Text("مفضّل")
                 Switch(checked = isFavorite, onCheckedChange = viewModel::setIsFavorite)
             }
 
-            Text("Tracklist", style = MaterialTheme.typography.titleMedium)
+            Text("قائمة المقاطع", style = MaterialTheme.typography.titleMedium)
             tracks.forEachIndexed { index, track ->
                 TrackRow(
                     track = track,
@@ -232,11 +232,11 @@ fun MixFormScreen(
                 )
             }
             OutlinedButton(onClick = viewModel::addTrackRow, modifier = Modifier.fillMaxWidth()) {
-                Text("Add track")
+                Text("إضافة مقطع")
             }
 
             Button(onClick = viewModel::save, modifier = Modifier.fillMaxWidth()) {
-                Text(if (viewModel.isEditMode) "Save" else "Add Mix")
+                Text(if (viewModel.isEditMode) "حفظ" else "إضافة ميكس")
             }
         }
     }
@@ -252,23 +252,23 @@ private fun TrackRow(track: TrackDraft, onChange: (TrackDraft) -> Unit, onRemove
         OutlinedTextField(
             value = track.timestamp,
             onValueChange = { onChange(track.copy(timestamp = it)) },
-            label = { Text("mm:ss") },
+            label = { Text("د:ث") },
             modifier = Modifier.weight(0.7f)
         )
         OutlinedTextField(
             value = track.artist,
             onValueChange = { onChange(track.copy(artist = it)) },
-            label = { Text("Artist") },
+            label = { Text("الفنان") },
             modifier = Modifier.weight(1f)
         )
         OutlinedTextField(
             value = track.trackTitle,
             onValueChange = { onChange(track.copy(trackTitle = it)) },
-            label = { Text("Track") },
+            label = { Text("المقطع") },
             modifier = Modifier.weight(1f)
         )
         IconButton(onClick = onRemove) {
-            Icon(Icons.Filled.Close, contentDescription = "Remove track")
+            Icon(Icons.Filled.Close, contentDescription = "حذف المقطع")
         }
     }
 }

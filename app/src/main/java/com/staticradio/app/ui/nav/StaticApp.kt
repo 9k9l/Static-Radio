@@ -107,6 +107,30 @@ fun StaticApp(stationDao: StationDao, sharedMixUrl: String? = null) {
         )
     )
     val barState = playerViewModel.barState
+
+    // Recording saves into the public Download folder. On Android 10+ that
+    // needs no permission; on 8/9 it needs WRITE_EXTERNAL_STORAGE at runtime.
+    val recordContext = LocalContext.current
+    val storagePermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) playerViewModel.toggleRecording() }
+    val onToggleRecording: () -> Unit = {
+        val needsPermission = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q &&
+            !playerViewModel.isRecording &&
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                recordContext, android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (needsPermission) {
+            storagePermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else {
+            playerViewModel.toggleRecording()
+        }
+    }
+    LaunchedEffect(Unit) {
+        app.playbackRepository.recordingMessages.collect { msg ->
+            android.widget.Toast.makeText(recordContext, msg, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
     val imageShape by app.settingsRepository.imageShape.collectAsState(initial = ImageShape.SQUARE)
     val showBackgroundGrid by app.settingsRepository.showBackgroundGrid.collectAsState(initial = true)
     val gridSpacingDp by app.settingsRepository.gridSpacingDp.collectAsState(initial = com.staticradio.app.data.settings.DEFAULT_GRID_SPACING_DP)
@@ -213,7 +237,7 @@ fun StaticApp(stationDao: StationDao, sharedMixUrl: String? = null) {
                         TagVocabularyScreen(
                             stationDao = stationDao,
                             tagType = com.staticradio.app.data.local.TagType.MOOD,
-                            title = "Mood",
+                            title = "المزاج",
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -221,7 +245,7 @@ fun StaticApp(stationDao: StationDao, sharedMixUrl: String? = null) {
                         TagVocabularyScreen(
                             stationDao = stationDao,
                             tagType = com.staticradio.app.data.local.TagType.STYLE,
-                            title = "Style",
+                            title = "النمط",
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -306,7 +330,9 @@ fun StaticApp(stationDao: StationDao, sharedMixUrl: String? = null) {
             PersistentPlayerBar(
                 state = barState,
                 onTogglePlayPause = playerViewModel::togglePlayPause,
-                onRandom = playerViewModel::playRandom,
+                isRecording = playerViewModel.isRecording,
+                recordingSeconds = playerViewModel.recordingSeconds,
+                onToggleRecording = onToggleRecording,
                 castEnabled = castEnabled,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

@@ -134,12 +134,12 @@ class MixFormViewModel(
     fun save() {
         val urlValue = _url.value.trim()
         if (urlValue.isEmpty()) {
-            _error.value = "Enter a URL"
+            _error.value = "أدخل الرابط"
             return
         }
         val releasedDateText = _releasedDate.value.trim()
         if (releasedDateText.isNotEmpty() && !RELEASE_DATE_REGEX.matches(releasedDateText)) {
-            _releasedDateError.value = "Must be DD/MM/YYYY (e.g. 01/01/2020)"
+            _releasedDateError.value = "يجب أن يكون بصيغة يوم/شهر/سنة (مثال: 01/01/2020)"
             return
         }
         viewModelScope.launch {

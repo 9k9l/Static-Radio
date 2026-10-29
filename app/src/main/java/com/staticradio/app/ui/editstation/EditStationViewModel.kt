@@ -136,25 +136,25 @@ class EditStationViewModel(
     fun save() {
         val url = _streamUrl.value.trim()
         if (url.isEmpty() || !(url.startsWith("http://") || url.startsWith("https://"))) {
-            _error.value = "Enter a valid stream URL (must start with http:// or https://)"
+            _error.value = "أدخل رابط بث صحيحاً (يجب أن يبدأ بـ http:// أو https://)"
             return
         }
         val bitrateText = _bitrate.value.trim()
         val bitrateValue = bitrateText.toIntOrNull()
         if (bitrateText.isNotEmpty() && bitrateValue == null) {
-            _error.value = "Bitrate must be a number"
+            _error.value = "يجب أن يكون معدل البت رقماً"
             return
         }
         val latText = _latitude.value.trim()
         val latValue = latText.toDoubleOrNull()?.let { roundToFiveDecimals(it) }
         if (latText.isNotEmpty() && latValue == null) {
-            _error.value = "Latitude must be a number"
+            _error.value = "يجب أن يكون خط العرض رقماً"
             return
         }
         val lonText = _longitude.value.trim()
         val lonValue = lonText.toDoubleOrNull()?.let { roundToFiveDecimals(it) }
         if (lonText.isNotEmpty() && lonValue == null) {
-            _error.value = "Longitude must be a number"
+            _error.value = "يجب أن يكون خط الطول رقماً"
             return
         }
         val liveFromText = _liveTimesFrom.value.trim()
@@ -162,11 +162,11 @@ class EditStationViewModel(
         val timeRegex = Regex("""^([01]\d|2[0-3]):([0-5]\d)$""")
         if (!_is24x7.value) {
             if (liveFromText.isNotEmpty() && !timeRegex.matches(liveFromText)) {
-                _liveTimeError.value = "Live from time must be 24h HH:mm (e.g. 23:59)"
+                _liveTimeError.value = "وقت بدء البث يجب أن يكون بنظام 24 ساعة بصيغة HH:mm (مثال: 23:59)"
                 return
             }
             if (liveToText.isNotEmpty() && !timeRegex.matches(liveToText)) {
-                _liveTimeError.value = "Live to time must be 24h HH:mm (e.g. 23:59)"
+                _liveTimeError.value = "وقت انتهاء البث يجب أن يكون بنظام 24 ساعة بصيغة HH:mm (مثال: 23:59)"
                 return
             }
         }

@@ -47,7 +47,7 @@ fun TagPickerField(
             readOnly = true,
             label = { Text(label) },
             placeholder = {
-                Text(if (vocabulary.isEmpty()) "No $label options defined — add some in Settings" else "Tap to select")
+                Text(if (vocabulary.isEmpty()) "لا توجد خيارات ${label.substringBefore(" (")} معرّفة — أضف بعضها من الإعدادات" else "اضغط للاختيار")
             },
             supportingText = supportingText?.let { { Text(it) } },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -61,7 +61,7 @@ fun TagPickerField(
         ) {
             if (value != null) {
                 DropdownMenuItem(
-                    text = { Text("None") },
+                    text = { Text("لا شيء") },
                     onClick = { onValueChange(null); expanded = false }
                 )
             }

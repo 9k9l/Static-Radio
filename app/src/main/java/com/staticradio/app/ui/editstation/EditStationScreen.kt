@@ -101,16 +101,16 @@ fun EditStationScreen(
             containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             textContentColor = MaterialTheme.colorScheme.onSurface,
-            title = { Text("Delete station?") },
-            text = { Text("This removes it from your library. This can't be undone.") },
+            title = { Text("حذف المحطة؟") },
+            text = { Text("سيتم حذفها من مكتبتك. لا يمكن التراجع عن هذا الإجراء.") },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteConfirm = false
                     viewModel.delete()
-                }) { Text("Delete") }
+                }) { Text("حذف") }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("إلغاء") }
             }
         )
     }
@@ -119,15 +119,15 @@ fun EditStationScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Edit Station") },
+                title = { Text("تعديل المحطة") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع")
                     }
                 },
                 actions = {
                     IconButton(onClick = { showDeleteConfirm = true }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Delete station")
+                        Icon(Icons.Filled.Delete, contentDescription = "حذف المحطة")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -177,34 +177,34 @@ fun EditStationScreen(
             OutlinedTextField(
                 value = streamUrl,
                 onValueChange = viewModel::setStreamUrl,
-                label = { Text("Stream URL *") },
+                label = { Text("رابط البث *") },
                 isError = error != null,
                 supportingText = error?.let { { Text(it) } },
                 modifier = Modifier.fillMaxWidth()
             )
-            SourcedField(name, viewModel::setName, "Name")
+            SourcedField(name, viewModel::setName, "الاسم")
 
-            SourcedField(imageUrl, viewModel::setImageUrl, "Image URL")
+            SourcedField(imageUrl, viewModel::setImageUrl, "رابط الصورة")
             Button(
                 onClick = { pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Upload Image") }
+            ) { Text("رفع صورة") }
 
             CountryCodeField(
                 value = country,
                 onValueChange = viewModel::setCountry,
-                label = "Country"
+                label = "الدولة"
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                SourcedField(latitude, viewModel::setLatitude, "Latitude", modifier = Modifier.weight(1f))
-                SourcedField(longitude, viewModel::setLongitude, "Longitude", modifier = Modifier.weight(1f))
+                SourcedField(latitude, viewModel::setLatitude, "خط العرض", modifier = Modifier.weight(1f))
+                SourcedField(longitude, viewModel::setLongitude, "خط الطول", modifier = Modifier.weight(1f))
             }
-            Button(onClick = onPickLocation, modifier = Modifier.fillMaxWidth()) { Text("Pick on Map") }
+            Button(onClick = onPickLocation, modifier = Modifier.fillMaxWidth()) { Text("اختيار من الخريطة") }
 
             if (clickCountSnapshot != null) {
                 ReadOnlyField(
-                    label = "Click count",
+                    label = "عدد النقرات",
                     value = "$clickCountSnapshot${popularityTier?.let { " · $it" }.orEmpty()}"
                 )
             } else {
@@ -215,32 +215,32 @@ fun EditStationScreen(
                 stationDao = stationDao,
                 value = genre,
                 onValueChange = viewModel::setGenre,
-                label = "Genre",
-                supportingText = "Genres played — multiple allowed"
+                label = "النوع",
+                supportingText = "الأنواع الموسيقية المقدَّمة — يمكن اختيار أكثر من نوع"
             )
             TagPickerField(
                 stationDao = stationDao,
                 tagType = TagType.MOOD,
                 value = mood,
                 onValueChange = viewModel::setMood,
-                label = "Mood",
-                supportingText = "What setting you might want to play the radio in"
+                label = "المزاج",
+                supportingText = "الأجواء التي قد ترغب في تشغيل الراديو فيها"
             )
             TagPickerField(
                 stationDao = stationDao,
                 tagType = TagType.STYLE,
                 value = style,
                 onValueChange = viewModel::setStyle,
-                label = "Style",
-                supportingText = "What type of stream this is, e.g. DJ set, radio show, talk show"
+                label = "النمط",
+                supportingText = "نوع البث، مثل: عرض دي جي، برنامج راديو، برنامج حواري"
             )
-            SourcedField(bitrate, viewModel::setBitrate, "Bitrate (kbps)")
-            SourcedField(description, viewModel::setDescription, "Description")
-            SourcedField(websiteUrl, viewModel::setWebsiteUrl, "Website URL")
+            SourcedField(bitrate, viewModel::setBitrate, "معدل البت (kbps)")
+            SourcedField(description, viewModel::setDescription, "الوصف")
+            SourcedField(websiteUrl, viewModel::setWebsiteUrl, "رابط الموقع")
             LanguageField(
                 value = language,
                 onValueChange = viewModel::setLanguage,
-                label = "Language"
+                label = "اللغة"
             )
 
             Row(
@@ -248,7 +248,7 @@ fun EditStationScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Favourite")
+                Text("مفضّلة")
                 Switch(checked = isFavorite, onCheckedChange = viewModel::setIsFavorite)
             }
 
@@ -257,7 +257,7 @@ fun EditStationScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Live 24/7")
+                Text("بث مباشر على مدار الساعة")
                 Switch(checked = is24x7, onCheckedChange = viewModel::setIs24x7)
             }
             if (!is24x7) {
@@ -265,7 +265,7 @@ fun EditStationScreen(
                     OutlinedTextField(
                         value = liveTimesFrom,
                         onValueChange = viewModel::setLiveTimesFrom,
-                        label = { Text("Live from") },
+                        label = { Text("يبدأ البث من") },
                         placeholder = { Text("23:59 (24h)") },
                         isError = liveTimeError != null,
                         modifier = Modifier.weight(1f)
@@ -273,7 +273,7 @@ fun EditStationScreen(
                     OutlinedTextField(
                         value = liveTimesTo,
                         onValueChange = viewModel::setLiveTimesTo,
-                        label = { Text("Live to") },
+                        label = { Text("ينتهي البث عند") },
                         placeholder = { Text("23:59 (24h)") },
                         isError = liveTimeError != null,
                         modifier = Modifier.weight(1f)
@@ -290,7 +290,7 @@ fun EditStationScreen(
                 val localTo = com.staticradio.app.data.CountryTimeZones.toLocalEquivalent(country, liveTimesTo)
                 if (localFrom != null && localTo != null) {
                     Text(
-                        "≈ $localFrom–$localTo your time (station country: $country)",
+                        "≈ $localFrom–$localTo بتوقيتك (دولة المحطة: $country)",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -298,7 +298,7 @@ fun EditStationScreen(
             }
 
             Button(onClick = viewModel::save, modifier = Modifier.fillMaxWidth()) {
-                Text("Save")
+                Text("حفظ")
             }
         }
     }
@@ -340,9 +340,9 @@ private val POPULARITY_EMOJIS = listOf("❄️", "🧊", "😐", "🔥", "🌋")
 @Composable
 private fun PopularityPicker(selected: String?, onSelect: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Popularity", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("الشعبية", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
-            "No click count from Radio Browser for this station — pick a tier yourself",
+            "لا توجد بيانات نقرات من Radio Browser لهذه المحطة — اختر المستوى بنفسك",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

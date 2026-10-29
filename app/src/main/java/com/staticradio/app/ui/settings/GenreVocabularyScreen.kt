@@ -58,10 +58,10 @@ fun GenreVocabularyScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Genre Vocabulary") },
+                title = { Text("قائمة الأنواع") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -70,7 +70,7 @@ fun GenreVocabularyScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             Text(
-                "Constrains genre smart tags to a known list — stations can still enter free text, but it shows up here for cleanup.",
+                "يحصر وسوم النوع الذكية في قائمة معروفة — يمكن للمحطات إدخال نص حر، لكنه يظهر هنا للتنظيف.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp)
@@ -83,11 +83,11 @@ fun GenreVocabularyScreen(
                 OutlinedTextField(
                     value = newTagName,
                     onValueChange = viewModel::setNewTagName,
-                    label = { Text("New genre") },
+                    label = { Text("نوع جديد") },
                     modifier = Modifier.weight(1f)
                 )
                 Button(onClick = viewModel::addGenreTag, modifier = Modifier.padding(start = 8.dp)) {
-                    Text("Add")
+                    Text("إضافة")
                 }
             }
 
@@ -104,7 +104,7 @@ fun GenreVocabularyScreen(
                     ) {
                         Text(tag.name)
                         IconButton(onClick = { viewModel.deleteGenreTag(tag) }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Remove ${tag.name}")
+                            Icon(Icons.Filled.Close, contentDescription = "حذف ${tag.name}")
                         }
                     }
                 }
